@@ -77,7 +77,10 @@ def post_create(request, post_id=None):
         instance = get_object_or_404(Post, pk=post_id)
     else:
         instance = None
-    form = PostForm(request.POST or None, instance=instance)
+    form = PostForm(request.POST or None,
+                    instance=instance,
+                    files=request.FILES or None,
+        )
     context = {'form': form}
     if form.is_valid():
         form.save()
