@@ -8,10 +8,6 @@ User = get_user_model()
 class CustomUserEditForm(UserCreationForm):
 
 
-    password1 = None
-    password2 = None
-
-
     class Meta(UserCreationForm.Meta):
 
         model = User
@@ -21,3 +17,9 @@ class CustomUserEditForm(UserCreationForm):
             'last_name',
             'email',
         )
+
+
+    def __init__(self, *args, **kwargs):
+       super(UserCreationForm, self).__init__(*args, **kwargs)
+       del self.fields['password1']
+       del self.fields['password2']

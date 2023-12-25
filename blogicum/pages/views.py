@@ -1,11 +1,13 @@
-from django.shortcuts import render
+from django.views.generic import TemplateView
 
 
-def about(request):
-    """View функция для отображения страницы о проекте."""
-    return render(request, 'pages/about.html')
+class AboutPage(TemplateView):
+    """Класс для отображения страницы о проекте."""
+
+    template_name = 'pages/about.html'
 
 
-def rules(request):
-    """View функция для отображения списка правил."""
-    return render(request, 'pages/rules.html')
+class RulesPage(TemplateView):
+    """Класс для отображения списка правил."""
+
+    template_name = 'pages/rules.html'

@@ -3,6 +3,7 @@ from datetime import datetime
 from django.shortcuts import get_object_or_404, render, redirect
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
+from django.http import Http404
 
 from .models import Post, Category, Comment
 from .forms import PostForm, CommentForm
@@ -93,24 +94,31 @@ def post_create(request, post_id=None):
 def post_edit(request, post_id):
     """View функция редактирования отдельного поста."""
     instance = get_object_or_404(get_queryset(), pk=post_id)
-    form = PostForm(request.POST or None, instance=instance)
-    context = {'form': form}
-    if form.is_valid():
-        form.save()
+    if instance.author == request.user:
+        form = PostForm(request.POST or None, instance=instance)
+        context = {'form': form}
+        if form.is_valid():
+            form.save()
+            return redirect('blog:post_detail', post_id=post_id)
+        return render(request, 'blog/create.html', context)
+    else:
         return redirect('blog:post_detail', post_id=post_id)
-    return render(request, 'blog/create.html', context)
 
 
 @login_required
 def post_delete(request, post_id):
     """View функция удаления отдельного поста."""
     instance = get_object_or_404(get_queryset(), pk=post_id)
-    form = PostForm(request.POST or None, instance=instance)
-    context = {'form': form}
-    if request.method == 'POST':
-        instance.delete()
-        return redirect('blog:index')
-    return render(request, 'blog/create.html', context)
+    if instance.author == request.user:
+        form = PostForm(request.POST or None, instance=instance)
+        context = {'form': form}
+        if request.method == 'POST':
+            instance.delete()
+            return redirect('blog:index')
+        return render(request, 'blog/create.html', context)
+    else:
+        return redirect('blog:post_detail', post_id=post_id)
+
 
 @login_required
 def coment_create(request, post_id):
@@ -123,6 +131,7 @@ def coment_create(request, post_id):
         comment.post = post
         comment.save()
     return redirect('blog:post_detail', post_id=post_id)
+
 
 @login_required
 def coment_edit(request, post_id, comment_id):
@@ -137,6 +146,7 @@ def coment_edit(request, post_id, comment_id):
         form.save()
         return redirect('blog:post_detail', post_id=post_id)
     return render(request, 'blog/comment.html', context)
+
 
 @login_required
 def coment_delete(request, post_id, comment_id):

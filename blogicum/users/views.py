@@ -24,7 +24,7 @@ class UserCreateView(CreateView):
     success_url = reverse_lazy('blog:index')
 
 
-def profile(request, username):
+def profile_overview(request, username):
     """View функция для обзорной страницы профиля с его постами."""
     user = get_object_or_404(User, username=username)
     paginator = Paginator(Post.objects.select_related(
@@ -41,10 +41,10 @@ def profile(request, username):
     return render(request, 'blog/profile.html', context)
 
 
-def edit(request, username):
+def profile_edit(request, username):
     """View функция для страницы редактирования профиля."""
     instance = get_object_or_404(User, username=username)
-    if instance.username == request.user.username:
+    if instance == request.user:
         form = CustomUserEditForm(request.POST or None, instance=instance)
         context = {'form': form}
         if form.is_valid():
