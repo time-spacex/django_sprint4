@@ -2,12 +2,10 @@ from datetime import datetime
 
 from django.shortcuts import get_object_or_404, render, redirect
 from django.core.paginator import Paginator
+from django.contrib.auth.decorators import login_required
 
 from .models import Post, Category, Comment
 from .forms import PostForm, CommentForm
-
-
-POST_COUNT = 5
 
 
 def get_queryset():
@@ -71,6 +69,7 @@ def category_posts(request, category_slug):
     return render(request, 'blog/category.html', context)
 
 
+@login_required
 def post_create(request, post_id=None):
     """View функция создания формы нового поста."""
     if post_id is not None:
@@ -83,10 +82,14 @@ def post_create(request, post_id=None):
         )
     context = {'form': form}
     if form.is_valid():
+        form.save(commit=False)
+        form.instance.author = request.user
         form.save()
+        return redirect('blog:profile', username=request.user.username)
     return render(request, 'blog/create.html', context)
 
 
+@login_required
 def post_edit(request, post_id):
     """View функция редактирования отдельного поста."""
     instance = get_object_or_404(get_queryset(), pk=post_id)
@@ -98,6 +101,7 @@ def post_edit(request, post_id):
     return render(request, 'blog/create.html', context)
 
 
+@login_required
 def post_delete(request, post_id):
     """View функция удаления отдельного поста."""
     instance = get_object_or_404(get_queryset(), pk=post_id)
@@ -108,7 +112,7 @@ def post_delete(request, post_id):
         return redirect('blog:index')
     return render(request, 'blog/create.html', context)
 
-
+@login_required
 def coment_create(request, post_id):
     """View функция для сохранения комментариев к публикации."""
     post = get_object_or_404(get_queryset(), pk=post_id)
@@ -120,7 +124,7 @@ def coment_create(request, post_id):
         comment.save()
     return redirect('blog:post_detail', post_id=post_id)
 
-
+@login_required
 def coment_edit(request, post_id, comment_id):
     """View функция для редактирования комментариев к публикации."""
     instance = get_object_or_404(Comment.objects.filter(
@@ -134,7 +138,7 @@ def coment_edit(request, post_id, comment_id):
         return redirect('blog:post_detail', post_id=post_id)
     return render(request, 'blog/comment.html', context)
 
-
+@login_required
 def coment_delete(request, post_id, comment_id):
     """View функция для удаления комментариев к публикации."""
     instance = get_object_or_404(Comment.objects.filter(
