@@ -33,9 +33,17 @@ def index(request):
 def post_detail(request, post_id):
     """Функция для отображения страницы детализации поста."""
     post = get_object_or_404(
-        get_queryset(),
-        pk=post_id
+        Post.objects.select_related(
+        'author',
+        'location',
+        'category'
+        ), pk=post_id
     )
+    if post.author != request.user:
+        post = get_object_or_404(
+            get_queryset(),
+            pk=post_id
+        )
     comments = Comment.objects.select_related(
         'author',
         'post'
@@ -141,7 +149,7 @@ def coment_edit(request, post_id, comment_id):
     )
     form = CommentForm(request.POST or None, instance=instance)
     context = {'comment': instance, 'form': form}
-    if form.is_valid():
+    if form.is_valid() and instance.author == request.user:
         form.save()
         return redirect('blog:post_detail', post_id=post_id)
     return render(request, 'blog/comment.html', context)
@@ -155,7 +163,7 @@ def coment_delete(request, post_id, comment_id):
         ), pk=comment_id
     )
     context = {'comment': instance}
-    if request.method == 'POST':
+    if request.method == 'POST' and instance.author == request.user:
         instance.delete()
         return redirect('blog:post_detail', post_id=post_id)
     return render(request, 'blog/comment.html', context)
