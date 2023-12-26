@@ -11,7 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-qt#aa*s5jlyns%ipcnj8*)pqu^lh)2_)m4kqf-p)u!srcp913y'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = []
 
@@ -62,6 +62,8 @@ TEMPLATES = [
         },
     },
 ]
+
+TEMPLATES_DIR = BASE_DIR / 'templates'
 
 WSGI_APPLICATION = 'blogicum.wsgi.application'
 
@@ -127,7 +129,7 @@ STATICFILES_DIRS = [
 
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 
-EMAIL_FILE_PATH = BASE_DIR / 'sent_emails' 
+EMAIL_FILE_PATH = BASE_DIR / 'sent_emails'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
@@ -143,4 +145,4 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
 ]
 
-CSRF_FAILURE_VIEW = 'core.views.csrf_failure' 
+CSRF_FAILURE_VIEW = 'pages.views.csrf_failure'

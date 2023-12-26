@@ -100,7 +100,7 @@ class Comment(PublishedModel):
 
     text = models.TextField('Комментарий')
     author = models.ForeignKey(
-        User, 
+        User,
         on_delete=models.CASCADE,
         related_name='comments'
     )
@@ -110,7 +110,6 @@ class Comment(PublishedModel):
         related_name='comments',
         verbose_name='Публикация'
     )
-
 
     class Meta:
         ordering = ('created_at',)

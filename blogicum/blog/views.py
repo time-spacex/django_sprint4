@@ -34,9 +34,9 @@ def post_detail(request, post_id):
     """Функция для отображения страницы детализации поста."""
     post = get_object_or_404(
         Post.objects.select_related(
-        'author',
-        'location',
-        'category'
+            'author',
+            'location',
+            'category'
         ), pk=post_id
     )
     if post.author != request.user:
@@ -49,7 +49,7 @@ def post_detail(request, post_id):
         'post'
     ).filter(post__id=post_id)
     context: dict = {
-        'post': post, 
+        'post': post,
         'comments': comments,
         'form': CommentForm()
     }
@@ -65,7 +65,7 @@ def category_posts(request, category_slug):
     )
     paginator = Paginator(
         get_queryset().filter(
-        category__slug=category_slug
+            category__slug=category_slug
         ), 10
     )
     page_number = request.GET.get('page')
@@ -84,10 +84,11 @@ def post_create(request, post_id=None):
         instance = get_object_or_404(Post, pk=post_id)
     else:
         instance = None
-    form = PostForm(request.POST or None,
-                    instance=instance,
-                    files=request.FILES or None,
-        )
+    form = PostForm(
+        request.POST or None,
+        instance=instance,
+        files=request.FILES or None,
+    )
     context = {'form': form}
     if form.is_valid():
         form.save(commit=False)
@@ -143,8 +144,9 @@ def coment_create(request, post_id):
 @login_required
 def coment_edit(request, post_id, comment_id):
     """View функция для редактирования комментариев к публикации."""
-    instance = get_object_or_404(Comment.objects.filter(
-        post_id=post_id
+    instance = get_object_or_404(
+        Comment.objects.filter(
+            post_id=post_id
         ), pk=comment_id
     )
     form = CommentForm(request.POST or None, instance=instance)
@@ -158,8 +160,9 @@ def coment_edit(request, post_id, comment_id):
 @login_required
 def coment_delete(request, post_id, comment_id):
     """View функция для удаления комментариев к публикации."""
-    instance = get_object_or_404(Comment.objects.filter(
-        post_id=post_id
+    instance = get_object_or_404(
+        Comment.objects.filter(
+            post_id=post_id
         ), pk=comment_id
     )
     context = {'comment': instance}
