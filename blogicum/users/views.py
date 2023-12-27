@@ -29,7 +29,7 @@ def profile_overview(request, username):
     page_obj = get_page_number(
         get_queryset(
             show_post_for_author=True
-        ).filter(author_id=user.id), request
+        ).filter(author=user), request
     )
     context: dict = {
         'profile': user,

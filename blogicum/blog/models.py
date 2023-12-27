@@ -118,4 +118,4 @@ class Comment(PublishedModel):
 
     def __str__(self):
         return (f'{str(self.id)} {self.author.username} '
-        f'{self.text}')[:MAX_CLASS_STRING_LENGTH]
+                f'{self.text}')[:MAX_CLASS_STRING_LENGTH]

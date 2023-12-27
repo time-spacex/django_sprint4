@@ -13,7 +13,7 @@ from .forms import PostForm, CommentForm
 
 def get_queryset(show_post_for_author=False, show_comment_count=True):
     """Функция для получения базового QuerySet."""
-    queryset =  Post.objects.select_related(
+    queryset = Post.objects.select_related(
         'author',
         'location',
         'category'
@@ -55,9 +55,9 @@ def post_detail(request, post_id):
         get_queryset(True, False), pk=post_id
     )
     if post.author != request.user and (
-        post.is_published == False
+        post.is_published is False
         or post.pub_date.replace(tzinfo=None) > datetime.today()
-        or post.category.is_published == False
+        or post.category.is_published is False
     ):
         raise Http404
     comments = post.comments.filter(is_published=True)
@@ -79,8 +79,8 @@ def category_posts(request, category_slug):
     page_obj = get_page_number(
         get_queryset().filter(
             category=category
-            ), request
-        )
+        ), request
+    )
     context: dict = {
         'page_obj': page_obj,
         'category': category
@@ -89,16 +89,11 @@ def category_posts(request, category_slug):
 
 
 @login_required
-def post_create(request, post_id=None):
+def post_create(request):
     """View функция создания формы нового поста."""
-    if post_id is not None:
-        instance = get_object_or_404(Post, pk=post_id)
-    else:
-        instance = None
     form = PostForm(
         request.POST or None,
-        instance=instance,
-        files=request.FILES or None,
+        files=request.FILES or None
     )
     context = {'form': form}
     if form.is_valid():
@@ -113,30 +108,28 @@ def post_create(request, post_id=None):
 def post_edit(request, post_id):
     """View функция редактирования отдельного поста."""
     instance = get_object_or_404(get_queryset(), pk=post_id)
-    if instance.author == request.user:
-        form = PostForm(request.POST or None, instance=instance)
-        context = {'form': form}
-        if form.is_valid():
-            form.save()
-            return redirect('blog:post_detail', post_id=post_id)
-        return render(request, 'blog/create.html', context)
-    else:
+    if instance.author != request.user:
         return redirect('blog:post_detail', post_id=post_id)
+    form = PostForm(request.POST or None, instance=instance)
+    context = {'form': form}
+    if form.is_valid():
+        form.save()
+        return redirect('blog:post_detail', post_id=post_id)
+    return render(request, 'blog/create.html', context)
 
 
 @login_required
 def post_delete(request, post_id):
     """View функция удаления отдельного поста."""
     instance = get_object_or_404(get_queryset(), pk=post_id)
-    if instance.author == request.user:
-        form = PostForm(request.POST or None, instance=instance)
-        context = {'form': form}
-        if request.method == 'POST':
-            instance.delete()
-            return redirect('blog:index')
-        return render(request, 'blog/create.html', context)
-    else:
+    if instance.author != request.user:
         return redirect('blog:post_detail', post_id=post_id)
+    form = PostForm(request.POST or None, instance=instance)
+    context = {'form': form}
+    if request.method == 'POST':
+        instance.delete()
+        return redirect('blog:index')
+    return render(request, 'blog/create.html', context)
 
 
 @login_required
