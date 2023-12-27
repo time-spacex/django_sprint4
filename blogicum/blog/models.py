@@ -115,3 +115,7 @@ class Comment(PublishedModel):
         ordering = ('created_at',)
         verbose_name = 'комментарий'
         verbose_name_plural = 'Комментарии'
+
+    def __str__(self):
+        return (f'{str(self.id)} {self.author.username} '
+        f'{self.text}')[:MAX_CLASS_STRING_LENGTH]

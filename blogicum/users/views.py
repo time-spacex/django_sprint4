@@ -7,6 +7,7 @@ from django.urls import reverse_lazy
 from django.shortcuts import render, get_object_or_404
 
 from blog.models import Post
+from blog.views import get_queryset
 from .forms import CustomUserEditForm
 
 
@@ -27,11 +28,10 @@ class UserCreateView(CreateView):
 def profile_overview(request, username):
     """View функция для обзорной страницы профиля с его постами."""
     user = get_object_or_404(User, username=username)
-    paginator = Paginator(Post.objects.select_related(
-        'author',
-        'location',
-        'category'
-    ).filter(author_id=user.id), 10)
+    paginator = Paginator(
+        get_queryset(show_post_for_author=True).filter(author_id=user.id),
+        10
+        )
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     context: dict = {

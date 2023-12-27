@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from django.db.models import Count
 from django.shortcuts import get_object_or_404, render, redirect
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
@@ -8,7 +9,7 @@ from .models import Post, Category, Comment
 from .forms import PostForm, CommentForm
 
 
-def get_queryset():
+'''def get_queryset():
     """Функция для получения базового QuerySet."""
     return Post.objects.select_related(
         'author',
@@ -18,7 +19,31 @@ def get_queryset():
         pub_date__lt=datetime.today(),
         is_published=True,
         category__is_published=True
+    )'''
+
+
+def get_queryset(show_post_for_author=False, show_comment_count=True):
+    """Функция для получения базового QuerySet."""
+    queryset =  Post.objects.select_related(
+        'author',
+        'location',
+        'category'
     )
+    if not show_post_for_author:
+        return_queryset = queryset.filter(
+            pub_date__lt=datetime.today(),
+            is_published=True,
+            category__is_published=True
+        )
+    else:
+        return_queryset = queryset
+    if show_comment_count:
+        return_queryset_annotated = return_queryset.annotate(
+            comment_count=Count('comments')
+        ).order_by('-pub_date')
+    else:
+        return_queryset_annotated = return_queryset
+    return return_queryset_annotated
 
 
 def index(request):
