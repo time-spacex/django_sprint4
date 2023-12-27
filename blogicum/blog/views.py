@@ -4,6 +4,7 @@ from django.db.models import Count
 from django.shortcuts import get_object_or_404, render, redirect
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
+from django.conf import settings
 
 from .models import Post, Category, Comment
 from .forms import PostForm, CommentForm
@@ -46,11 +47,16 @@ def get_queryset(show_post_for_author=False, show_comment_count=True):
     return return_queryset_annotated
 
 
+def get_page_number(queryset, request):
+    """Функция, создающая постраничный вывод постов."""
+    paginator = Paginator(queryset, settings.POSTS_PER_PAGE)
+    page_number = request.GET.get('page')
+    return paginator.get_page(page_number)
+
+
 def index(request):
     """View функция для формирования и отображения постов в виде списка."""
-    paginator = Paginator(get_queryset(), 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    page_obj = get_page_number(get_queryset(), request)
     context: dict = {'page_obj': page_obj}
     return render(request, 'blog/index.html', context)
 
@@ -88,13 +94,11 @@ def category_posts(request, category_slug):
         is_published=True,
         slug=category_slug
     )
-    paginator = Paginator(
+    page_obj = get_page_number(
         get_queryset().filter(
             category__slug=category_slug
-        ), 10
-    )
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+            ), request
+        )
     context: dict = {
         'page_obj': page_obj,
         'category': category

@@ -146,3 +146,7 @@ ALLOWED_HOSTS = [
 ]
 
 CSRF_FAILURE_VIEW = 'pages.views.csrf_failure'
+
+# Default count of posts displayed per page
+
+POSTS_PER_PAGE = 10
