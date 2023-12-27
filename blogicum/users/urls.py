@@ -10,10 +10,6 @@ urlpatterns: list = [
         views.UserCreateView.as_view(),
         name='registration'
     ),
-    path(
-        'profile/edit/',
-        views.profile_edit,
-        name='edit_profile'
-    ),
+    path('profile/edit/', views.profile_edit, name='edit_profile'),
     path('profile/<str:username>/', views.profile_overview, name='profile'),
 ]

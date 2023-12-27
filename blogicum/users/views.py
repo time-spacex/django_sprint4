@@ -26,11 +26,14 @@ class UserCreateView(CreateView):
 def profile_overview(request, username):
     """View функция для обзорной страницы профиля с его постами."""
     user = get_object_or_404(User, username=username)
-    page_obj = get_page_number(
-        get_queryset(
-            show_post_for_author=True
-        ).filter(author=user), request
-    )
+    if request.user == user:
+        page_obj = get_page_number(
+            get_queryset(
+                True
+            ).filter(author=user), request
+        )
+    else:
+        page_obj = get_page_number(get_queryset().filter(author=user), request)
     context: dict = {
         'profile': user,
         'page_obj': page_obj
