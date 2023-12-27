@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from django.db.models import Count
+from django.http import Http404
 from django.shortcuts import get_object_or_404, render, redirect
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
@@ -8,19 +9,6 @@ from django.conf import settings
 
 from .models import Post, Category, Comment
 from .forms import PostForm, CommentForm
-
-
-'''def get_queryset():
-    """Функция для получения базового QuerySet."""
-    return Post.objects.select_related(
-        'author',
-        'location',
-        'category'
-    ).filter(
-        pub_date__lt=datetime.today(),
-        is_published=True,
-        category__is_published=True
-    )'''
 
 
 def get_queryset(show_post_for_author=False, show_comment_count=True):
@@ -64,21 +52,15 @@ def index(request):
 def post_detail(request, post_id):
     """Функция для отображения страницы детализации поста."""
     post = get_object_or_404(
-        Post.objects.select_related(
-            'author',
-            'location',
-            'category'
-        ), pk=post_id
+        get_queryset(True, False), pk=post_id
     )
-    if post.author != request.user:
-        post = get_object_or_404(
-            get_queryset(),
-            pk=post_id
-        )
-    comments = Comment.objects.select_related(
-        'author',
-        'post'
-    ).filter(post__id=post_id)
+    if post.author != request.user and (
+        post.is_published == False
+        or post.pub_date.replace(tzinfo=None) > datetime.today()
+        or post.category.is_published == False
+    ):
+        raise Http404
+    comments = post.comments.filter(is_published=True)
     context: dict = {
         'post': post,
         'comments': comments,
@@ -96,7 +78,7 @@ def category_posts(request, category_slug):
     )
     page_obj = get_page_number(
         get_queryset().filter(
-            category__slug=category_slug
+            category=category
             ), request
         )
     context: dict = {
