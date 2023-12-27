@@ -169,8 +169,8 @@ def coment_delete(request, post_id, comment_id):
             post_id=post_id
         ), pk=comment_id
     )
-    context = {'comment': instance}
     if request.method == 'POST' and instance.author == request.user:
         instance.delete()
         return redirect('blog:post_detail', post_id=post_id)
+    context = {'comment': instance}
     return render(request, 'blog/comment.html', context)

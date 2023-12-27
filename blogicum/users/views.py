@@ -38,11 +38,10 @@ def profile_overview(request, username):
     return render(request, 'blog/profile.html', context)
 
 
-def profile_edit(request, username):
+def profile_edit(request):
     """View функция для страницы редактирования профиля."""
-    instance = get_object_or_404(User, username=username)
-    if instance == request.user:
-        form = CustomUserEditForm(request.POST or None, instance=instance)
+    if request.user in User.objects.all():
+        form = CustomUserEditForm(request.POST or None, instance=request.user)
         context = {'form': form}
         if form.is_valid():
             form.save()
