@@ -11,40 +11,41 @@ from .models import Post, Category, Comment
 from .forms import PostForm, CommentForm
 
 
-def get_queryset(show_post_for_author=False, show_comment_count=True):
+def get_queryset(add_filters_to_queryset=False, show_comment_count=False):
     """Функция для получения базового QuerySet."""
     queryset = Post.objects.select_related(
         'author',
         'location',
         'category'
     )
-    if not show_post_for_author:
-        return_queryset = queryset.filter(
+    if add_filters_to_queryset:
+        queryset = queryset.filter(
             pub_date__lt=datetime.today(),
             is_published=True,
             category__is_published=True
         )
-    else:
-        return_queryset = queryset
     if show_comment_count:
-        return_queryset_annotated = return_queryset.annotate(
+        queryset = queryset.annotate(
             comment_count=Count('comments')
         ).order_by('-pub_date')
-    else:
-        return_queryset_annotated = return_queryset
-    return return_queryset_annotated
+    return queryset
 
 
-def get_page_number(queryset, request):
+def get_page_number(queryset, request, posts_per_page=settings.POSTS_PER_PAGE):
     """Функция, создающая постраничный вывод постов."""
-    paginator = Paginator(queryset, settings.POSTS_PER_PAGE)
+    paginator = Paginator(queryset, posts_per_page)
     page_number = request.GET.get('page')
     return paginator.get_page(page_number)
 
 
 def index(request):
     """View функция для формирования и отображения постов в виде списка."""
-    page_obj = get_page_number(get_queryset(), request)
+    page_obj = get_page_number(
+        get_queryset(
+            add_filters_to_queryset=True,
+            show_comment_count=True
+        ), request
+    )
     context: dict = {'page_obj': page_obj}
     return render(request, 'blog/index.html', context)
 
@@ -52,7 +53,7 @@ def index(request):
 def post_detail(request, post_id):
     """Функция для отображения страницы детализации поста."""
     post = get_object_or_404(
-        get_queryset(True, False), pk=post_id
+        get_queryset(), pk=post_id
     )
     if post.author != request.user and (
         post.is_published is False
@@ -60,7 +61,7 @@ def post_detail(request, post_id):
         or post.category.is_published is False
     ):
         raise Http404
-    comments = post.comments.filter(is_published=True)
+    comments = post.comments.all()
     context: dict = {
         'post': post,
         'comments': comments,
@@ -77,7 +78,10 @@ def category_posts(request, category_slug):
         slug=category_slug
     )
     page_obj = get_page_number(
-        get_queryset().filter(
+        get_queryset(
+            add_filters_to_queryset=True,
+            show_comment_count=True
+        ).filter(
             category=category
         ), request
     )
